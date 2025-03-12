@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n x n 網格地圖</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .matrix-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .settings {
+            margin-bottom: 20px;
+        }
+        .grid-container {
+            display: inline-block;
+            margin-right: 40px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        td {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #000;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+        }
+        .green {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .red {
+            background-color: #F44336;
+            color: white;
+        }
+        .gray {
+            background-color: #9E9E9E;
+            color: white;
+        }
+        .arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+        }
+        .value {
+            font-size: 12px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .legend {
+            margin-top: 20px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        .button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .button-secondary {
+            background-color: #2196F3;
+        }
+        .button-secondary:hover {
+            background-color: #0b7dda;
+        }
+        .matrix-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+        .matrix-title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .instructions {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            text-align: left;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>n x n 網格地圖</h1>
+    
+    <div class="container">
+        <div class="settings">
+            <label for="gridSize">輸入數字 (3 到 10):</label>
+            <input type="number" id="gridSize" min="3" max="10" value="5">
+            <button onclick="generateGrid()" class="button">生成網格</button>
+        </div>
+        
+        <div id="squareInfo"></div>
+        
+        <div class="instructions">
+            <h3>操作說明：</h3>
+            <ol>
+                <li>點選一個單元格設置起始點（綠色）或終點（紅色）</li>
+                <li>點選其他單元格設置障礙物（灰色），最多可設置 n-2 個障礙物</li>
+                <li>設置完成後點擊「生成策略與價值」按鈕</li>
+            </ol>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="grid-container">
+            <table id="grid"></table>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color green"></div>
+                    <span>起點</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color red"></div>
+                    <span>終點</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color gray"></div>
+                    <span>障礙物</span>
+                </div>
+            </div>
+            <button onclick="generatePolicy()" class="button button-secondary" style="margin-top: 20px;">生成策略與價值</button>
+        </div>
+        
+        <div class="matrix-container" id="matrices"></div>
+    </div>
+
+    <script>
+        let gridSize = 5;
+        let grid = [];
+        let startCell = null;
+        let endCell = null;
+        let obstacles = [];
+        let maxObstacles = gridSize - 2;
+        let valueMatrix = [];
+        let policyMatrix = [];
+        
+        // 初始載入時生成網格
+        window.onload = function() {
+            generateGrid();
+        };
+        
+        // 生成網格
+        function generateGrid() {
+            // 重置所有變數
+            gridSize = parseInt(document.getElementById('gridSize').value);
+            if (gridSize < 3) gridSize = 3;
+            if (gridSize > 10) gridSize = 10;
+            
+            startCell = null;
+            endCell = null;
+            obstacles = [];
+            maxObstacles = gridSize - 2;
+            
+            document.getElementById('squareInfo').innerHTML = `<h2>${gridSize} x ${gridSize} 網格:</h2>`;
+            document.getElementById('status').innerHTML = `請選擇起點（綠色）和終點（紅色），以及最多 ${maxObstacles} 個障礙物（灰色）`;
+            document.getElementById('matrices').innerHTML = '';
+            
+            // 生成二維網格陣列
+            grid = [];
+            for (let i = 0; i < gridSize; i++) {
+                grid[i] = Array(gridSize).fill(0);
+            }
+            
+            // 生成網格表格
+            const gridTable = document.getElementById('grid');
+            gridTable.innerHTML = '';
+            
+            let cellCounter = 1;
+            for (let i = 0; i < gridSize; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < gridSize; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = cellCounter++;
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', handleCellClick);
+                    row.appendChild(cell);
+                }
+                gridTable.appendChild(row);
+            }
+        }
+        
+        // 處理單元格點擊事件
+        function handleCellClick(event) {
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+            
+            // 檢查是否已經是起點、終點或障礙物
+            if (startCell && startCell.row === row && startCell.col === col) {
+                event.target.classList.remove('green');
+                startCell = null;
+                return;
+            }
+            
+            if (endCell && endCell.row === row && endCell.col === col) {
+                event.target.classList.remove('red');
+                endCell = null;
+                return;
+            }
+            
+            for (let i = 0; i < obstacles.length; i++) {
+                if (obstacles[i].row === row && obstacles[i].col === col) {
+                    event.target.classList.remove('gray');
+                    obstacles.splice(i, 1);
+                    return;
+                }
+            }
+            
+            // 設置新的單元格類型
+            if (!startCell) {
+                event.target.classList.add('green');
+                startCell = { row, col };
+            } else if (!endCell) {
+                event.target.classList.add('red');
+                endCell = { row, col };
+            } else if (obstacles.length < maxObstacles) {
+                event.target.classList.add('gray');
+                obstacles.push({ row, col });
+            } else {
+                alert(`已達到最大障礙物數量 (${maxObstacles})！`);
+            }
+            
+            updateStatus();
+        }
+        
+        // 更新狀態資訊
+        function updateStatus() {
+            let status = '';
+            
+            if (!startCell) {
+                status = '請選擇起點（綠色）';
+            } else if (!endCell) {
+                status = '請選擇終點（紅色）';
+            } else {
+                status = `已選擇起點和終點，可以添加最多 ${maxObstacles} 個障礙物（已添加 ${obstacles.length}）`;
+            }
+            
+            document.getElementById('status').innerHTML = status;
+        }
+        
+        // 生成策略和價值
+        function generatePolicy() {
+            if (!startCell || !endCell) {
+                alert('請先選擇起點和終點！');
+                return;
+            }
+            
+            // 初始化價值矩陣
+            valueMatrix = [];
+            for (let i = 0; i < gridSize; i++) {
+                valueMatrix[i] = Array(gridSize).fill(0);
+            }
+            
+            // 初始化策略矩陣（隨機策略）
+            policyMatrix = [];
+            for (let i = 0; i < gridSize; i++) {
+                policyMatrix[i] = [];
+                for (let j = 0; j < gridSize; j++) {
+                    if ((i === startCell.row && j === startCell.col) || 
+                        (i === endCell.row && j === endCell.col) || 
+                        isObstacle(i, j)) {
+                        policyMatrix[i][j] = '';
+                    } else {
+                        const actions = ['↑', '→', '↓', '←'];
+                        policyMatrix[i][j] = actions[Math.floor(Math.random() * actions.length)];
+                    }
+                }
+            }
+            
+            // 設定終點的價值為高值
+            valueMatrix[endCell.row][endCell.col] = 1;
+            
+            // 進行價值評估（多次迭代以收斂）
+            const gamma = 0.9; // 折扣因子
+            for (let iter = 0; iter < 100; iter++) {
+                let delta = 0;
+                for (let i = 0; i < gridSize; i++) {
+                    for (let j = 0; j < gridSize; j++) {
+                        if ((i === endCell.row && j === endCell.col) || isObstacle(i, j)) {
+                            continue; // 跳過終點和障礙物
+                        }
+                        
+                        const oldValue = valueMatrix[i][j];
+                        
+                        // 根據當前策略評估價值
+                        if (policyMatrix[i][j] === '↑') {
+                            valueMatrix[i][j] = getReward(i, j) + gamma * getValue(i-1, j);
+                        } else if (policyMatrix[i][j] === '→') {
+                            valueMatrix[i][j] = getReward(i, j) + gamma * getValue(i, j+1);
+                        } else if (policyMatrix[i][j] === '↓') {
+                            valueMatrix[i][j] = getReward(i, j) + gamma * getValue(i+1, j);
+                        } else if (policyMatrix[i][j] === '←') {
+                            valueMatrix[i][j] = getReward(i, j) + gamma * getValue(i, j-1);
+                        }
+                        
+                        delta = Math.max(delta, Math.abs(oldValue - valueMatrix[i][j]));
+                    }
+                }
+                
+                // 如果變化夠小，就認為已經收斂
+                if (delta < 0.001) {
+                    break;
+                }
+            }
+            
+            // 顯示矩陣
+            displayMatrices();
+        }
+        
+        // 檢查是否是障礙物
+        function isObstacle(row, col) {
+            for (let obstacle of obstacles) {
+                if (obstacle.row === row && obstacle.col === col) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // 獲取獎勵（這裡簡單設定，可以根據需求調整）
+        function getReward(row, col) {
+            if (row === endCell.row && col === endCell.col) {
+                return 1; // 到達終點有獎勵
+            }
+            return -0.04; // 其他位置有小懲罰，鼓勵尋找最短路徑
+        }
+        
+        // 安全地獲取價值，處理邊界情況
+        function getValue(row, col) {
+            // 如果超出邊界，返回0
+            if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
+                return 0;
+            }
+            
+            // 如果是障礙物，返回0
+            if (isObstacle(row, col)) {
+                return 0;
+            }
+            
+            return valueMatrix[row][col];
+        }
+        
+        // 顯示價值矩陣和策略矩陣
+        function displayMatrices() {
+            const matricesContainer = document.getElementById('matrices');
+            matricesContainer.innerHTML = '';
+            
+            // 價值矩陣表格
+            const valueContainer = document.createElement('div');
+            valueContainer.innerHTML = '<div class="matrix-title">價值矩陣</div>';
+            const valueTable = document.createElement('table');
+            
+            for (let i = 0; i < gridSize; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < gridSize; j++) {
+                    const cell = document.createElement('td');
+                    
+                    if ((i === startCell.row && j === startCell.col) || 
+                        (i === endCell.row && j === endCell.col) || 
+                        isObstacle(i, j)) {
+                        cell.classList.add(i === startCell.row && j === startCell.col ? 'green' : 
+                                          i === endCell.row && j === endCell.col ? 'red' : 'gray');
+                    }
+                    
+                    const value = document.createElement('div');
+                    value.className = 'value';
+                    value.textContent = valueMatrix[i][j].toFixed(2);
+                    cell.appendChild(value);
+                    
+                    row.appendChild(cell);
+                }
+                valueTable.appendChild(row);
+            }
+            
+            valueContainer.appendChild(valueTable);
+            matricesContainer.appendChild(valueContainer);
+            
+            // 策略矩陣表格
+            const policyContainer = document.createElement('div');
+            policyContainer.innerHTML = '<div class="matrix-title">策略矩陣</div>';
+            const policyTable = document.createElement('table');
+            
+            for (let i = 0; i < gridSize; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < gridSize; j++) {
+                    const cell = document.createElement('td');
+                    
+                    if ((i === startCell.row && j === startCell.col) || 
+                        (i === endCell.row && j === endCell.col) || 
+                        isObstacle(i, j)) {
+                        cell.classList.add(i === startCell.row && j === startCell.col ? 'green' : 
+                                          i === endCell.row && j === endCell.col ? 'red' : 'gray');
+                    }
+                    
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    arrow.textContent = policyMatrix[i][j];
+                    cell.appendChild(arrow);
+                    
+                    row.appendChild(cell);
+                }
+                policyTable.appendChild(row);
+            }
+            
+            policyContainer.appendChild(policyTable);
+            matricesContainer.appendChild(policyContainer);
+        }
+    </script>
+</body>
+</html>
