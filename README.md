@@ -18,26 +18,12 @@
 2. 在專案根目錄下運行：
 
 ```bash
-docker-compose up
+cd grid_app
+docker-compose up -d
 ```
 
 3. 在瀏覽器中訪問 `http://localhost:5000`
 
-### 手動構建和運行Docker容器
-
-1. 構建Docker映像：
-
-```bash
-docker build -t grid-app .
-```
-
-2. 運行容器：
-
-```bash
-docker run -p 5000:5000 grid-app
-```
-
-3. 在瀏覽器中訪問 `http://localhost:5000`
 
 ## 本地運行（不使用Docker）
 
@@ -54,23 +40,3 @@ python app.py
 ```
 
 3. 在瀏覽器中訪問 `http://localhost:5000`
-
-## 目錄結構
-
-```
-.
-├── app.py              # Flask應用入口
-├── templates/          # HTML模板
-│   └── index.html      # 主頁面
-├── Dockerfile          # Docker配置
-├── docker-compose.yml  # Docker Compose配置
-└── requirements.txt    # Python依賴
-```
-
-## 使用方法
-
-1. 輸入網格尺寸（3-10）並點擊「生成網格」按鈕
-2. 點擊某個單元格設置為起點（綠色）
-3. 點擊另一個單元格設置為終點（紅色）
-4. 點擊其他單元格設置障礙物（灰色），最多可設置n-2個
-5. 點擊「生成策略與價值」按鈕來產生策略和價值評估
