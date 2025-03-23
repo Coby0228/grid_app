@@ -1,76 +1,41 @@
-# n x n 網格地圖應用
+# Gridworld Environment and Value Iteration
 
-這是一個基於Flask的網格地圖應用，實現了強化學習中的策略評估演算法。
+This is a Flask-based grid map application that implements the policy evaluation algorithm in reinforcement learning.
 
-## 功能
+## Features
 
-- 生成可自定義大小的網格（3x3 到 10x10）
-- 設置起點（綠色）和終點（紅色）
-- 添加障礙物（灰色）
-- 生成隨機策略
-- 計算並顯示每個單元格的價值
+- Generate a customizable grid (from 3x3 to 10x10)  
+- Set a start point (green) and an endpoint (red)  
+- Add obstacles (gray)  
+- Generate a random policy  
+- Compute and display the value of each cell  
 
-## 使用Docker運行
+## Running with Docker
 
-### 使用Docker Compose (推薦)
+### Using Docker Compose (Recommended)
 
-1. 確保已安裝Docker和Docker Compose
-2. 在專案根目錄下運行：
+1. Ensure Docker and Docker Compose are installed.  
+2. Run the following command in the project root directory:
 
-```bash
-docker-compose up
-```
+    ```bash
+    cd grid_app
+    docker-compose up -d
+    ```
 
-3. 在瀏覽器中訪問 `http://localhost:5000`
+3. Visit `http://localhost:5000`
 
-### 手動構建和運行Docker容器
+## Running Locally (Without Docker)
 
-1. 構建Docker映像：
+1. Install dependencies:
 
-```bash
-docker build -t grid-app .
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-2. 運行容器：
+2. Run the application:
 
-```bash
-docker run -p 5000:5000 grid-app
-```
+    ```bash
+    python app.py
+    ```
 
-3. 在瀏覽器中訪問 `http://localhost:5000`
-
-## 本地運行（不使用Docker）
-
-1. 安裝依賴：
-
-```bash
-pip install -r requirements.txt
-```
-
-2. 運行應用：
-
-```bash
-python app.py
-```
-
-3. 在瀏覽器中訪問 `http://localhost:5000`
-
-## 目錄結構
-
-```
-.
-├── app.py              # Flask應用入口
-├── templates/          # HTML模板
-│   └── index.html      # 主頁面
-├── Dockerfile          # Docker配置
-├── docker-compose.yml  # Docker Compose配置
-└── requirements.txt    # Python依賴
-```
-
-## 使用方法
-
-1. 輸入網格尺寸（3-10）並點擊「生成網格」按鈕
-2. 點擊某個單元格設置為起點（綠色）
-3. 點擊另一個單元格設置為終點（紅色）
-4. 點擊其他單元格設置障礙物（灰色），最多可設置n-2個
-5. 點擊「生成策略與價值」按鈕來產生策略和價值評估
+3. Visit `http://localhost:5000`
