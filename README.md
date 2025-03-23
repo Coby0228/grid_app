@@ -2,6 +2,9 @@
 
 This is a Flask-based grid map application that implements the policy evaluation algorithm in reinforcement learning.
 
+![image](https://github.com/user-attachments/assets/faaf425c-d2db-443e-b378-dcbf7e34c818)
+
+
 ## Features
 
 - Generate a customizable grid (from 3x3 to 10x10)  
